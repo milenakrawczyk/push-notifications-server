@@ -60,7 +60,7 @@ function connect(address, protocols, options) {
           },
         }),
       );
-    
+
       setTimeout(() => ws.send(JSON.stringify(notificationsSubscription)), 50);
       clearTimeout(timerTimeout);
       setInterval(() => ws.ping(JSON.stringify({ event: "ping" })), 10000);
@@ -72,15 +72,16 @@ function connect(address, protocols, options) {
       } else if (data.id == 'notifications' && data.payload?.data?.dataplatform_near_notifications_notifications_stream) {
         const messages = data.payload?.data?.dataplatform_near_notifications_notifications_stream;
         console.log('Received data', JSON.stringify(messages));
-    
+
         if (messages.length > 0) {
           messages.forEach( (message) => {
             console.log('Publishing message', JSON.stringify(message));
-            topic.publishMessage({data: Buffer.from(JSON.stringify(message))}).then(() =>{
+            topic.publishMessage({data: Buffer.from(JSON.stringify(message))}).then(() => {
               console.log('Message published, id: ' + message.id);
               BLOCK_HEIGHT = BLOCK_HEIGHT > message.blockHeight ?  BLOCK_HEIGHT : message.blockHeight - 3;
+            }).catch((err) => {
+              console.error('Error publishing message: ', err);
             });
-    
           });
         }
       }
@@ -102,4 +103,3 @@ function connect(address, protocols, options) {
 }
 
 connect(`wss://${QUERY_API_ENDPOINT}/v1/graphql`, 'graphql-ws', null);
-
